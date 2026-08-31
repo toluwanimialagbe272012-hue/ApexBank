@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Bank - Online Banking</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-hover: #334155;
+      --accent-primary: #3b82f6;
+      --accent-primary-hover: #2563eb;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #334155;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    @media (min-width: 850px) {
+      .app-container {
+        grid-template-columns: 360px 1fr;
+      }
+    }
+
+    /* Common Card Styling */
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Left Sidebar / Profile & Accounts */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-primary), #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .user-info h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .user-info p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Debit Card Component */
+    .virtual-card {
+      background: linear-gradient(135deg, #1e1b4b, #312e81, #4338ca);
+      border-radius: 20px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 1.586;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+    }
+
+    .virtual-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      transform: rotate(45deg);
+      pointer-events: none;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chip {
+      width: 42px;
+      height: 30px;
+      background: linear-gradient(135deg, #fbbf24, #d97706);
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .card-vendor {
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: 1px;
+      font-size: 1.1rem;
+    }
+
+    .card-number {
+      font-size: 1.25rem;
+      letter-spacing: 3px;
+      font-family: monospace;
+      color: #e2e8f0;
+    }
+
+    .card-bottom {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+    }
+
+    /* Balance Display */
+    .balance-card h3 {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .balance-amount {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Right Main Content */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Action Forms */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .btn {
+      background-color: var(--accent-primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: var(--accent-primary-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--card-hover);
+    }
+
+    /* Tabs Component */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Transactions List */
+    .transaction-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background-color: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: background-color 0.2s;
+    }
+
+    .transaction-item:hover {
+      background-color: var(--card-hover);
+    }
+
+    .tx-details {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tx-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .tx-icon.credit {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+
+    .tx-icon.debit {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .tx-info h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .tx-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .tx-amount {
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .tx-amount.credit {
+      color: var(--success);
+    }
+
+    .tx-amount.debit {
+      color: var(--text-main);
+    }
+
+    /* Notifications */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateY(150%);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      
+      <!-- User Profile -->
+      <div class="card user-profile">
+        <div class="avatar">JD</div>
+        <div class="user-info">
+          <h2>John Doe</h2>
+          <p>Premium Tier Member</p>
+        </div>
+      </div>
+
+      <!-- Account Balance -->
+      <div class="card balance-card">
+        <h3>Total Balance</h3>
+        <div class="balance-amount" id="accountBalance">$0.00</div>
+      </div>
+
+      <!-- Virtual Debit Card -->
+      <div class="virtual-card">
+        <div class="card-top">
+          <div class="chip"></div>
+          <div class="card-vendor">APEX</div>
+        </div>
+        <div class="card-number">•••• •••• •••• 4291</div>
+        <div class="card-bottom">
+          <div>
+            <div style="font-size: 0.6rem; opacity: 0.7;">CARD HOLDER</div>
+            <div>JOHN DOE</div>
+          </div>
+          <div>
+            <div style="font-size: 0.6rem; opacity: 0.7;">EXPIRES</div>
+            <div>08/28</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card">
+        <h3 style="margin-bottom: 12px; font-size: 0.9rem; color: var(--text-muted);">QUICK ACTIONS</h3>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" onclick="quickDeposit(100)">+$100</button>
+          <button class="btn btn-secondary" onclick="quickDeposit(500)">+$500</button>
+          <button class="btn btn-secondary" onclick="quickDeposit(1000)">+$1,000</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+
+      <!-- Action Panel (Tabs) -->
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('transferTab', this)">Transfer Funds</button>
+          <button class="tab-btn" onclick="switchTab('depositTab', this)">Deposit</button>
+          <button class="tab-btn" onclick="switchTab('withdrawTab', this)">Withdraw</button>
+        </div>
+
+        <!-- Transfer Form -->
+        <div id="transferTab" class="tab-content active">
+          <form id="transferForm" onsubmit="handleTransfer(event)">
+            <div class="actions-grid">
+              <div class="form-group">
+                <label for="recipient">Recipient Name</label>
+                <input type="text" id="recipient" placeholder="e.g. Jane Smith" required>
+              </div>
+              <div class="form-group">
+                <label for="accountNum">Account Number</label>
+                <input type="text" id="accountNum" placeholder="10-digit account ID" pattern="[0-9]{10}" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="transferAmount">Amount ($)</label>
+              <input type="number" id="transferAmount" min="1" step="0.01" placeholder="0.00" required>
+            </div>
+            <button type="submit" class="btn">Send Money</button>
+          </form>
+        </div>
+
+        <!-- Deposit Form -->
+        <div id="depositTab" class="tab-content">
+          <form id="depositForm" onsubmit="handleDeposit(event)">
+            <div class="form-group">
+              <label for="depositAmount">Amount to Deposit ($)</label>
+              <input type="number" id="depositAmount" min="1" step="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label for="depositSource">Payment Method</label>
+              <select id="depositSource">
+                <option value="Linked External Bank">Linked External Bank (**** 8821)</option>
+                <option value="Debit Card">Debit Card (**** 1092)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn">Confirm Deposit</button>
+          </form>
+        </div>
+
+        <!-- Withdraw Form -->
+        <div id="withdrawTab" class="tab-content">
+          <form id="withdrawForm" onsubmit="handleWithdraw(event)">
+            <div class="form-group">
+              <label for="withdrawAmount">Amount to Withdraw ($)</label>
+              <input type="number" id="withdrawAmount" min="1" step="0.01" placeholder="0.00" required>
+            </div>
+            <button type="submit" class="btn">Withdraw to External Account</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-size: 1rem; font-weight: 600;">Recent Activity</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);" id="txCount">0 Transactions</span>
+        </div>
+        <div class="transaction-list" id="transactionList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast">
+    <span id="toastMessage">Action completed successfully</span>
+  </div>
+
+  <script>
+    // App State
+    const state = {
+      balance: 4250.75,
+      transactions: [
+        { id: 1, type: 'credit', title: 'Salary Deposit', description: 'Tech Corp LLC', amount: 3500.00, date: '2026-08-24' },
+        { id: 2, type: 'debit', title: 'Transfer to Sarah', description: 'Acc **** 9012', amount: 150.00, date: '2026-08-25' },
+        { id: 3, type: 'debit', title: 'Grocery Store', description: 'Point of Sale', amount: 84.25, date: '2026-08-25' }
+      ]
+    };
+
+    // Initialize Application
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+    });
+
+    // Render Function
+    function render() {
+      // Render Balance
+      document.getElementById('accountBalance').textContent = formatCurrency(state.balance);
+      
+      // Render Transactions
+      const listEl = document.getElementById('transactionList');
+      const countEl = document.getElementById('txCount');
+      
+      listEl.innerHTML = '';
+      countEl.textContent = `${state.transactions.length} Transactions`;
+
+      if (state.transactions.length === 0) {
+        listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">No transactions yet.</div>`;
+        return;
+      }
+
+      state.transactions.forEach(tx => {
+        const item = document.createElement('div');
+        item.className = 'transaction-item';
+        
+        const isCredit = tx.type === 'credit';
+        const symbol = isCredit ? '+' : '-';
+        const iconSymbol = isCredit ? '↓' : '↑';
+        
+        item.innerHTML = `
+          <div class="tx-details">
+            <div class="tx-icon ${tx.type}">${iconSymbol}</div>
+            <div class="tx-info">
+              <h4>${escapeHtml(tx.title)}</h4>
+              <p>${escapeHtml(tx.description)} • ${tx.date}</p>
+            </div>
+          </div>
+          <div class="tx-amount ${tx.type}">
+            ${symbol}${formatCurrency(tx.amount)}
+          </div>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    // Tab Switching Logic
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(button => button.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Action Handlers
+    function handleTransfer(e) {
+      e.preventDefault();
+      const recipient = document.getElementById('recipient').value;
+      const accountNum = document.getElementById('accountNum').value;
+      const amount = parseFloat(document.getElementById('transferAmount').value);
+
+      if (amount > state.balance) {
+        showToast('Insufficient funds for this transfer.', 'error');
+        return;
+      }
+
+      state.balance -= amount;
+      state.transactions.unshift({
+        id: Date.now(),
+        type: 'debit',
+        title: `Transfer to ${recipient}`,
+        description: `Acc **** ${accountNum.slice(-4)}`,
+        amount: amount,
+        date: getFormattedDate()
+      });
+
+      render();
+      showToast(`Successfully transferred $${amount.toFixed(2)} to ${recipient}`);
+      e.target.reset();
+    }
+
+    function handleDeposit(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('depositAmount').value);
+      const source = document.getElementById('depositSource').value;
+
+      state.balance += amount;
+      state.transactions.unshift({
+        id: Date.now(),
+        type: 'credit',
+        title: 'Deposit Received',
+        description: source,
+        amount: amount,
+        date: getFormattedDate()
+      });
+
+      render();
+      showToast(`Deposited $${amount.toFixed(2)} successfully.`);
+      e.target.reset();
+    }
+
+    function handleWithdraw(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('withdrawAmount').value);
+
+      if (amount > state.balance) {
+        showToast('Insufficient funds available.', 'error');
+        return;
+      }
+
+      state.balance -= amount;
+      state.transactions.unshift({
+        id: Date.now(),
+        type: 'debit',
+        title: 'Bank Withdrawal',
+        description: 'External Transfer',
+        amount: amount,
+        date: getFormattedDate()
+      });
+
+      render();
+      showToast(`Withdrew $${amount.toFixed(2)} to external account.`);
+      e.target.reset();
+    }
+
+    function quickDeposit(amount) {
+      state.balance += amount;
+      state.transactions.unshift({
+        id: Date.now(),
+        type: 'credit',
+        title: 'Quick Deposit',
+        description: 'Instant Reload',
+        amount: amount,
+        date: getFormattedDate()
+      });
+
+      render();
+      showToast(`Quick added $${amount} to account.`);
+    }
+
+    // Utilities
+    function formatCurrency(num) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+    }
+
+    function getFormattedDate() {
+      const d = new Date();
+      return d.toISOString().split('T')[0];
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[match]));
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMessage = document.getElementById('toastMessage');
+
+      toastMessage.textContent = message;
+      toast.className = `toast ${type} show`;
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
